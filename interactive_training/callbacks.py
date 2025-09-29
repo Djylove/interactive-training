@@ -153,7 +153,7 @@ class InteractiveCallback(InteractiveCallbackBase):
 
         return root_tree_node
 
-    def _update_optimizer(self, cmd: Cmd, optimizer_raw, lr_scheduler):
+    def _update_optimizer(self, cmd: Cmd, optimizer_raw, lr_scheduler, args):
         """Set the learning rate for the optimizer."""
 
         if optimizer_raw is None:
@@ -203,6 +203,10 @@ class InteractiveCallback(InteractiveCallbackBase):
                 return False
             return True
 
+        def _update_max_grad_norm(new_max_grad_norm: float):
+            args.max_grad_norm = new_max_grad_norm
+            return True
+
         def _update_param(
             update_value: Dict[str, any], update_type: str = "param_groups"
         ):
@@ -249,10 +253,14 @@ class InteractiveCallback(InteractiveCallbackBase):
 
         ret = True
         bulk_update_params = {}
-        print("Update body:", update_body)
+        print("Update body:", update_body, update_body_json)
         for param_name, param_value in update_body.items():
             if param_name == "lr":
                 ret = ret and _update_lr(float(update_body["lr"]["value"]))
+            elif param_name == "max_grad_norm":
+                ret = ret and _update_max_grad_norm(
+                    float(update_body["max_grad_norm"]["value"])
+                )
             elif param_name in all_tunable_parameters_dict:
                 param_config = all_tunable_parameters_dict[param_name]
                 if param_config["type"] == "float":
@@ -297,7 +305,7 @@ class InteractiveCallback(InteractiveCallbackBase):
 
         dataset.update_runtime_parameters(json.loads(cmd.args))
 
-    def _build_initial_optimizer_state(self, optimizer_raw, lr_scheduler):
+    def _build_initial_optimizer_state(self, args, optimizer_raw, lr_scheduler):
 
         if optimizer_raw is None:
             logger.warning("No optimizer found to update parameters.")
@@ -361,6 +369,8 @@ class InteractiveCallback(InteractiveCallbackBase):
                 tmp_value = _get_param_from_optimizer_group(tunable_param["name"])
                 if tmp_value is not None:
                     optimizer_state[tunable_param["name"]] = tmp_value
+
+        optimizer_state["max_grad_norm"] = args.max_grad_norm
 
         return optimizer_state
 
@@ -557,7 +567,9 @@ class InteractiveCallback(InteractiveCallbackBase):
         lr_scheduler = kwargs.get("lr_scheduler", None)
         train_dataloader = kwargs.get("train_dataloader", None)
         model_info_tree = self._build_initial_model_info(cur_model)
-        optimizer_state = self._build_initial_optimizer_state(optimizer, lr_scheduler)
+        optimizer_state = self._build_initial_optimizer_state(
+            args, optimizer, lr_scheduler
+        )
         start_time = time.time()
 
         msg["time"] = start_time
@@ -593,7 +605,7 @@ class InteractiveCallback(InteractiveCallbackBase):
             self._cur_cmd_list.append(cmd)
             if cmd.command == UPDATE_OPTIMIZER:
                 if self._update_optimizer(
-                    cmd, kwargs.get("optimizer"), kwargs.get("lr_scheduler")
+                    cmd, kwargs.get("optimizer"), kwargs.get("lr_scheduler"), args
                 ):
                     msg = {
                         "status": CMD_SUCCESS,

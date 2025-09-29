@@ -10,7 +10,8 @@ import {
   NumericalInputControlWithSlider,
   BoolControlWithSwitch,
   FixedLengthNumericalListControl,
-  KeyValueDisplay
+  KeyValueDisplay,
+  NumericalInputControl
 } from "../sharedControl/sharedControl";
 
 const generateOptimizerUpdateTrainCommand = (
@@ -75,7 +76,7 @@ const OptimizerControl: React.FC<Props> = ({ className }: Props) => {
                 value={param.value}
                 className="text-black p-2"
               />) :
-            typeof param.value === "number" ? (
+            typeof param.value === "number" && param.name !== "max_grad_norm" ? (
               <NumericalInputControlWithSlider
                 key={key}
                 id={key + "-input"}
@@ -94,6 +95,24 @@ const OptimizerControl: React.FC<Props> = ({ className }: Props) => {
                 }}
                 className="text-black p-4 text-bold"
               />
+            ) : typeof param.value === "number" && param.name === "max_grad_norm"? (
+               <NumericalInputControl
+                key={key}
+                id={key + "-input"}
+                label={param.name}
+                value={param.value}
+                min={0}
+                onChange={(newValue) => {
+  
+                  const updatedParams = {
+                    ...localOptimizerState,
+                    [key]: { ...param, value: newValue },
+                  };
+                  setLocalOptimizerState(updatedParams);
+                }}
+                className="text-black p-4 text-bold"
+              />
+
             ) : typeof param.value === "boolean" ? (
               <BoolControlWithSwitch
                 key={key}
