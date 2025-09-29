@@ -587,6 +587,7 @@ class InteractiveTrainingMixin(Generic[TrainerType]):
                 batch_samples, num_items_in_batch = self.get_batch_samples(
                     epoch_iterator, num_batches, args.device
                 )
+                self.current_gradient_accumulation_steps = len(batch_samples)
                 for i, inputs in enumerate(batch_samples):
                     step += 1
                     do_sync_step = (
@@ -917,7 +918,9 @@ class InteractiveTrainingMixin(Generic[TrainerType]):
 
                 ckpt_info = self._server.get_checkpoint_info(load_config["uuid"])
                 if ckpt_info is None:
-                    logger.warning(f"Checkpoint with UUID {load_config['uuid']} not found.")
+                    logger.warning(
+                        f"Checkpoint with UUID {load_config['uuid']} not found."
+                    )
                     break
 
                 kwargs["resume_from_checkpoint"] = ckpt_info["checkpoint_dir"]

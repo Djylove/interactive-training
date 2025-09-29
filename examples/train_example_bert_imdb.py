@@ -29,7 +29,7 @@ def main():
         eval_strategy="no",
         logging_strategy="steps",
         do_eval=False,
-        logging_steps=50,
+        logging_steps=10,
         learning_rate=1e-5,
         per_device_train_batch_size=8,
         per_device_eval_batch_size=8,
