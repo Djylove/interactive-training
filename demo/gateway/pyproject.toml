@@ -17,8 +17,8 @@ dependencies = [
 [project.optional-dependencies]
 trainer = [
   "torch",
-  "transformers",
-  "datasets",
+  "transformers>=4.45,<5",
+  "datasets>=2.19,<5",
   "aim>=3.17",
 ]
 dev = ["pytest", "pytest-asyncio"]
