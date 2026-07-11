@@ -1,31 +1,48 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "interactive_training"
-version = "0.1.0"
-authors = [
-  { name="Your Name", email="your@email.com" },
-]
-description = "A short description of your project."
+name = "interactive-training"
+version = "2.0.0"
+description = "Auditable live-control infrastructure for human- and agent-operated model training"
 readme = "README.md"
-requires-python = ">=3.8"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+  {name = "Wentao Zhang"},
+  {name = "Xuanhe Pan"},
+  {name = "Yang Lu"},
+  {name = "Yuntian Deng"},
+]
+requires-python = ">=3.10"
+dependencies = ["pydantic>=2"]
 classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
+  "Development Status :: 4 - Beta",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
-# Add your Python dependencies here
-dependencies = [
-    "transformers>=4.0.0",
-    "fastapi>=0.68.0",
-    "uvicorn>=0.15.0",
-    "pydantic>=1.8.2",
-]
+
+[project.urls]
+Homepage = "https://interactivetraining.ai"
+Repository = "https://github.com/yuntian-group/interactive-training"
+Documentation = "https://github.com/yuntian-group/interactive-training#readme"
+Issues = "https://github.com/yuntian-group/interactive-training/issues"
+
+[project.optional-dependencies]
+transport = ["fastapi", "uvicorn"]
+aim = ["aim>=3.17"]
+agents = ["openai"]
+hf = ["torch", "transformers", "datasets", "accelerate", "wandb", "tqdm"]
+rlvr = ["torch", "transformers", "datasets", "peft", "vllm", "tqdm", "wandb"]
+vision = ["torch", "torchvision", "scipy", "numpy", "wandb"]
+plots = ["matplotlib>=3.8"]
+dev = ["pytest", "httpx", "ruff", "build"]
 
 [tool.setuptools.packages.find]
-where = ["interactive_training"]  # Look for packages in the src directory
-
-[tool.setuptools]
-package-dir = { "" = "interactive_training" }  # Set the root package directory
+where = ["src"]

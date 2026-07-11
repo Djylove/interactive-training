@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "source_repository": "https://github.com/yuntian-group/interactive-training",
+  "source_commit": "3b6751ca85f0539a6a2195f66183b70f43cb3513",
+  "matplotlib_version": "3.10.9",
+  "plotter": "scripts/plot_memory_scores.py",
+  "runs": [
+    {
+      "setting": "BERT/IMDB",
+      "memory": "logs/hf_bert_imdb_multiround/seed42/bert_imdb_memory.jsonl",
+      "memory_sha256": "de55258e0592dd1939719dfc68edf33f1284f7b7474e2aeaef2e43602bdd4291",
+      "output": "figures/imdb_multi_round_frontier.png",
+      "output_sha256": "f1b758b02d8e6dc711ad81bf9ee6fe32f8e98460f52878c048dfa8a6821159bf",
+      "direction": "min",
+      "ylabel": "Validation loss",
+      "rounds": 11,
+      "agent_rounds": 10,
+      "frontier_improvements_after_baseline": 3,
+      "baseline_score": 0.3543795049190521,
+      "best_score": 0.21955545246601105,
+      "best_round": 7,
+      "total_recorded_actions": 88,
+      "final_cumulative_agent_usage": {
+        "input_tokens": 251630,
+        "output_tokens": 86111,
+        "cost_usd": 3.84148
+      },
+      "command": "python scripts/plot_memory_scores.py logs/hf_bert_imdb_multiround/seed42/bert_imdb_memory.jsonl -o figures/imdb_multi_round_frontier.png --direction min --ylabel \"Validation loss\""
+    },
+    {
+      "setting": "Sentiment mixing",
+      "memory": "logs/data_mixing_sentiment/babysat_seed42/sentiment_memory.jsonl",
+      "memory_sha256": "e6a01f97ac6b07bf8141361d9abc48360918fff9af27b34aeb77ee7ff5212d9b",
+      "output": "figures/sentiment_frontier.png",
+      "output_sha256": "a2524109d6b7bf77fd0b2647fff9a32db810f60d27e6d9220ce195fbf5420b51",
+      "direction": "max",
+      "ylabel": "Yelp macro-F1",
+      "rounds": 11,
+      "agent_rounds": 10,
+      "frontier_improvements_after_baseline": 5,
+      "baseline_score": 0.5679627526625884,
+      "best_score": 0.6561211739007516,
+      "best_round": 10,
+      "total_recorded_actions": 399,
+      "final_cumulative_agent_usage": {
+        "input_tokens": 905540,
+        "output_tokens": 185689,
+        "cost_usd": 10.09837
+      },
+      "command": "python scripts/plot_memory_scores.py logs/data_mixing_sentiment/babysat_seed42/sentiment_memory.jsonl -o figures/sentiment_frontier.png --direction max --ylabel \"Yelp macro-F1\""
+    },
+    {
+      "setting": "Layerwise GPT",
+      "memory": "logs/layerwise_lr_gpt/seed42/layerwise_lr_gpt_memory.jsonl",
+      "memory_sha256": "a319bf3977e814fe9c804b32ef05f87087bc68d6e19003eca01d49ba5a4b613a",
+      "output": "figures/layerwise_lr_gpt_frontier.png",
+      "output_sha256": "a9e9f627b97bef674013d0fbd09d64276d657716edda7ddc67b6d875e3b79ba3",
+      "direction": "min",
+      "ylabel": "Validation loss",
+      "rounds": 11,
+      "agent_rounds": 10,
+      "frontier_improvements_after_baseline": 7,
+      "baseline_score": 5.345783424377442,
+      "best_score": 5.055350208282471,
+      "best_round": 8,
+      "total_recorded_actions": 355,
+      "final_cumulative_agent_usage": {
+        "input_tokens": 1191944,
+        "output_tokens": 200793,
+        "cost_usd": 11.98351
+      },
+      "command": "python scripts/plot_memory_scores.py logs/layerwise_lr_gpt/seed42/layerwise_lr_gpt_memory.jsonl -o figures/layerwise_lr_gpt_frontier.png --direction min --ylabel \"Validation loss\""
+    },
+    {
+      "setting": "Muon--AdamW GPT",
+      "memory": "logs/muon_gpt/seed42/muon_gpt_memory.jsonl",
+      "memory_sha256": "92a04850b9b0ff3743392052d0a17a59896011348d749dc350b2af525adc0f69",
+      "output": "figures/muon_gpt_frontier.png",
+      "output_sha256": "75479f9372b1f6d910829bc3d2c3a827abffde40f892de059001b35f5da1851d",
+      "direction": "min",
+      "ylabel": "Validation loss",
+      "rounds": 11,
+      "agent_rounds": 10,
+      "frontier_improvements_after_baseline": 4,
+      "baseline_score": 4.797370052337646,
+      "best_score": 4.42910737991333,
+      "best_round": 5,
+      "total_recorded_actions": 137,
+      "final_cumulative_agent_usage": {
+        "input_tokens": 449790,
+        "output_tokens": 138409,
+        "cost_usd": 6.40122
+      },
+      "command": "python scripts/plot_memory_scores.py logs/muon_gpt/seed42/muon_gpt_memory.jsonl -o figures/muon_gpt_frontier.png --direction min --ylabel \"Validation loss\""
+    },
+    {
+      "setting": "RLVR Countdown",
+      "memory": "logs/rlvr_grpo_countdown/seed42/countdown_memory.jsonl",
+      "memory_sha256": "def8aea5a19e361e04aa5e63b589868927f53b6ae41d64ef7326684528108449",
+      "output": "figures/countdown_frontier.png",
+      "output_sha256": "0f4d47b81cbdbd3238646cdf9ab689eee70af4ba1f72593afb968d80128d357f",
+      "direction": "max",
+      "ylabel": "Hardest-level accuracy",
+      "rounds": 8,
+      "agent_rounds": 7,
+      "frontier_improvements_after_baseline": 3,
+      "baseline_score": 0.032,
+      "best_score": 0.232,
+      "best_round": 7,
+      "total_recorded_actions": 228,
+      "final_cumulative_agent_usage": {
+        "input_tokens": 429279,
+        "output_tokens": 69034,
+        "cost_usd": 4.217415
+      },
+      "command": "python scripts/plot_memory_scores.py logs/rlvr_grpo_countdown/seed42/countdown_memory.jsonl -o figures/countdown_frontier.png --direction max --ylabel \"Hardest-level accuracy\""
+    }
+  ],
+  "totals": {
+    "agent_rounds": 47,
+    "recorded_actions": 1207,
+    "input_tokens": 3228183,
+    "output_tokens": 680036,
+    "cost_usd": 36.541995
+  }
+}

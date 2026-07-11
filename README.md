@@ -1,296 +1,280 @@
-# Interactive Training: Feedback-Driven Neural Network Optimization
+# Interactive Training 2
 
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/yuntian-group/interactive-training)
-[![Demo](https://img.shields.io/badge/Demo-Live-green)](https://interactivetraining.ai)
-[![Python](https://img.shields.io/badge/Python-3.8+-blue)](https://python.org)
-[![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
+> Upgrading from v1? The original Hugging Face mixin and React dashboard are
+> preserved at tag [`v1.0.0`](https://github.com/yuntian-group/interactive-training/tree/v1.0.0)
+> and branch [`legacy/v1`](https://github.com/yuntian-group/interactive-training/tree/legacy/v1).
+> See [`docs/MIGRATION_v1_to_v2.md`](docs/MIGRATION_v1_to_v2.md).
 
-Interactive Training is an open-source framework that enables real-time, feedback-driven intervention during neural network training. Unlike traditional static training approaches, Interactive Training allows human experts or automated AI agents to dynamically adjust optimizer parameters, training data, and model checkpoints while training is in progress.
+Interactive Training 2 is a framework-agnostic control plane for steering active
+machine-learning training runs. Training code registers live knobs and structured
+actions with a `TrainingSession`; humans, scripts, heuristics, and automated operators
+then use the same action protocol at explicit control points. The supplied LLM client
+is one reference operator: it plans an initial configuration, acts while a round is
+running, and writes a reflection that informs later fresh rounds.
 
-## 🖼 Preview
+This repository is a research prototype accompanying an EMNLP System Demonstrations
+submission. It is not an optimizer and does not guarantee that LLM interventions are
+safe or beneficial.
 
-<img src="figs/preview.png" alt="Demo Screenshot" width="600"/>
+## What is included
 
-## 🎮 Try the Interactive Demo
+- `src/interactive_training/core/`: sessions, knobs, actions, events, goals, checkpoints, memory, and
+  deterministic-round helpers.
+- `src/interactive_training/agents/`: a plan/act/reflect LLM reference operator.
+- `src/interactive_training/transport/`: HTTP/WebSocket control, Aim logging, and a Python client.
+- `src/interactive_training/integrations/`: Hugging Face `Trainer` wrapping and optimizer autopatching.
+- `src/interactive_training/recipes/`: reusable control surfaces for optimizers, GANs, Gym, and RLVR.
+- `examples/`: BERT finetuning, data mixing, layerwise GPT learning rates,
+  Muon–AdamW training, GRPO Countdown, and auxiliary experiments.
+- `tests/`: core, transport, agent, Aim-transport, and recipe tests.
 
-Play our interactive game at [**interactivetraining.ai**](https://interactivetraining.ai/) experience the power of dynamic optimization control.
+The customized Aim `/live` interface shown in the paper currently lives in a
+companion Aim fork. Standard Aim metric logging and the HTTP control API work from
+this repository; reproducing the exact paper UI additionally requires that fork via
+`AIM_SRC`. The fork must be published or merged before the paper artifact is
+considered complete.
 
-## 🚀 Key Features
+## Installation
 
-- **Real-time Interventions**: Dynamically adjust learning rates, optimizer parameters, and training configurations during training
-- **Interactive Dashboard**: React-based frontend for visualizing training metrics and sending control commands
-- **Checkpoint Management**: Save, load, and branch training trajectories with full history tracking
-- **LLM-based Tuning**: Enable LLM-based agents to automatically optimize training parameters
-- **Easy Integration**: Minimal code changes required - just wrap your existing Hugging Face Trainer
-- **Branching Support**: Create and manage multiple training branches from any checkpoint
-- **WebSocket Communication**: Real-time bidirectional communication between training process and dashboard
+Python 3.10 or newer is required.
 
-## 🏗️ Architecture
-
-Interactive Training consists of three main components:
-
-```
-┌─────────────────────┐    ┌─────────────────────┐    ┌─────────────────────┐
-│  Frontend Dashboard │◄──►│   Control Server    │◄──►│ Interactive Trainer │
-│   (React/TypeScript)│    │    (FastAPI)        │    │ (HuggingFace Trainer│
-│                     │    │                     │    │     + Callbacks)    │
-└─────────────────────┘    └─────────────────────┘    └─────────────────────┘
-```
-
-- **Control Server**: FastAPI-based server that mediates communication between frontend and trainer
-- **Interactive Trainer**: Extended Hugging Face Trainer with real-time intervention capabilities
-- **Frontend Dashboard**: React-based visualization and control interface
-
-## 📦 Installation
-
-### Prerequisites
-
-- Python 3.8+
-- Node.js 16+ (for frontend development)
-
-### Python Package Installation
+### Core library
 
 ```bash
-# Clone the repository
-git clone https://github.com/yuntian-group/interactive-training.git
-cd interactive-training
-
-# Install the package
-pip install -e .
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -e .
 ```
 
-### Frontend Setup (Optional)
-
-If you want to use the interactive dashboard:
+### HTTP, Aim, and LLM agent
 
 ```bash
-cd frontend/interactive_optimizer
-npm install
-npm run build
+python -m pip install -e ".[transport,aim,agents]"
 ```
 
-## 🔧 Quick Start
+### Hugging Face demonstrations
 
-### Basic Usage
-
-Transform your existing Hugging Face training script with just 3 lines of code:
-
-```python
-from transformers import Trainer
-from interactive_training import make_interactive  # 1. Import helper
-
-# 2. Wrap the standard Trainer class
-InteractiveTrainer = make_interactive(Trainer)
-
-# 3. Use InteractiveTrainer exactly as you would the original Trainer
-trainer = InteractiveTrainer(
-    model=model,
-    args=training_args,
-    train_dataset=train_dataset,
-    eval_dataset=eval_dataset,
-    tokenizer=tokenizer,
-    data_collator=data_collator,
-)
-
-trainer.train()  # Training is now fully interactive!
+```bash
+python -m pip install -e ".[transport,aim,agents,hf]"
 ```
 
-### Complete Example
+### RLVR and vision demonstrations
+
+The GRPO example additionally needs the `rlvr` extra and a CUDA environment supported
+by vLLM. The STL-10 GAN uses the `vision` extra.
+
+```bash
+python -m pip install -e ".[rlvr]"
+python -m pip install -e ".[vision]"
+```
+
+Provider credentials are read from `OPENAI_API_KEY` or `OPENROUTER_API_KEY`.
+Never commit keys or cluster environment files. A key may also be supplied at runtime
+through the `configure_agent` action; it is write-only and is redacted from state and
+events.
+
+## Quick CPU smoke test
+
+```bash
+python tests/run_tests.py
+```
+
+The test runner exercises the in-process control path, HTTP transport, scripted
+agents, recipes, checkpoint bookkeeping, and memory without making an LLM request.
+The manual Aim proxy smoke test is:
+
+```bash
+python tests/e2e_live_smoke.py
+```
+
+It requires Aim and, for the `/api/live` proxy path, the companion Aim fork.
+
+## Minimal direct integration
 
 ```python
-import wandb
-import argparse
-from datasets import load_dataset
-from transformers import (
-    Trainer,
-    AutoConfig,
-    AutoTokenizer,
-    TrainingArguments,
-    GPT2LMHeadModel,
-    DataCollatorForLanguageModeling,
+from interactive_training import LLMAgent, TrainingSession
+
+session = TrainingSession(
+    goal="val_loss",
+    agent=LLMAgent(every=100),
+    memory="memory.jsonl",
 )
 
+session.register_knob(
+    "lr",
+    get=get_learning_rate,
+    set=set_learning_rate,
+    min=0.0,
+    max=1e-2,
+    description="optimizer learning rate",
+)
+
+with session.run():
+    for step, batch in enumerate(loader):
+        loss = update_model(batch)
+        control = session.step({"loss": float(loss)}, step=step)
+        if control.stop:
+            break
+```
+
+For Hugging Face Trainer:
+
+```python
 from interactive_training import make_interactive
+from transformers import Trainer
 
-
-def main(args):
-    model_name = "openai-community/gpt2"
-    data_name = "wikitext"
-    data_part = "wikitext-2-raw-v1"
-    wandb.init(project="interactive-trainer-wikitext")
-    config = AutoConfig.from_pretrained(model_name)
-    model = GPT2LMHeadModel(config=config)
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    collator = DataCollatorForLanguageModeling(
-        tokenizer=tokenizer, mlm=False, pad_to_multiple_of=8
-    )
-    tokenizer.pad_token = tokenizer.eos_token
-    tokenizer.padding_side = "left"
-    args = TrainingArguments(
-        output_dir="./wikitext2",
-        per_device_train_batch_size=16,
-        per_device_eval_batch_size=16,
-        gradient_accumulation_steps=1,
-        num_train_epochs=5,
-        learning_rate=args.lr,
-        logging_steps=10,
-        save_steps=1000,
-        eval_steps=1000,
-        eval_strategy="steps",
-        fp16=True,
-        report_to="wandb",
-        eval_on_start=False,
-    )
-
-    train_data = load_dataset(data_name, data_part, split="train")
-    eval_data = load_dataset(data_name, data_part, split="validation")
-
-    def tokenize_function(examples):
-        return tokenizer(
-            examples["text"], truncation=True, max_length=1024, padding="longest"
-        )
-
-    train_data = train_data.filter(lambda x: len(x["text"]) > 0).map(
-        tokenize_function, batched=True, remove_columns=["text"]
-    )
-    eval_data = eval_data.filter(lambda x: len(x["text"]) > 0).map(
-        tokenize_function, batched=True, remove_columns=["text"]
-    )
-
-    InteractiveTrainer = make_interactive(Trainer)
-
-    trainer = InteractiveTrainer(
-        model=model,
-        args=args,
-        train_dataset=train_data,
-        eval_dataset=eval_data,
-        tokenizer=tokenizer,
-        data_collator=collator,
-    )
-    trainer.train()
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Train GPT-2 on WikiText-2")
-    parser.add_argument(
-        "--lr", type=float, default=1e-4, help="Learning rate for training"
-    )
-    args = parser.parse_args()
-    main(args)
-
+InteractiveTrainer = make_interactive(Trainer)
+trainer = InteractiveTrainer(..., session=session)
+trainer.train()
 ```
 
-## 🖥️ Interactive Dashboard
+For loops that cannot be edited directly, `session.autopatch(optimizer)` wraps
+`optimizer.step()` as a control point.
 
-Start your training script, you may see:
+## Action and event APIs
+
+When the HTTP transport is active:
+
+- `GET /state`: current status, goal, knobs, action schemas, agent configuration,
+  round metadata, checkpoints, and model tree.
+- `POST /actions`: submit an action object.
+- `GET /events?since=<seq>`: replay retained events.
+- `WS /events?since=<seq>`: subscribe to live events.
+
+Example:
 
 ```bash
-INFO:     Started server process [1755315]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     Uvicorn running on http://127.0.0.1:7007 (Press CTRL+C to quit)
+curl -X POST http://127.0.0.1:9876/actions \
+  -H 'Content-Type: application/json' \
+  -d '{"type":"set_knob","payload":{"name":"lr","value":0.00002},"source":"human:cli"}'
 ```
 
-Then open the interactive dashboard in browser:
+Built-in actions include `set_knob`, `evaluate`, `save_checkpoint`,
+`load_checkpoint`, `pause`, `resume`, `stop`, `reset_module`, `note`, `set_agent`,
+`configure_agent`, and `set_context`. Applications can register additional handlers.
+The supplied LLM agent is denied destructive and self-reconfiguration actions.
+
+## Multi-round semantics
+
+`TrainingSession.run_rounds(...)` adds one no-agent baseline round whenever an agent is
+attached. `--max-rounds N` therefore means one baseline plus `N` agent rounds.
+The showcased examples initialize a fresh model each round and reapply the same seed;
+session memory, not model weights, persists between rounds.
+
+Each memory JSONL record contains the initial configuration, best score and step,
+actions, reflection, and token accounting. `scripts/plot_memory_scores.py` plots one
+memory file; `scripts/plot_all_frontiers.py` regenerates all five paper panels and
+their SHA-256 provenance manifest.
+
+## Demonstrations
+
+### BERT/IMDB with Aim
 
 ```bash
-# Your training script will automatically start the control server
-# Open your browser and navigate to:
-http://127.0.0.1:7007
+python -m examples.hf_bert_imdb_frontend \
+  --max-rounds 3 \
+  --max-steps 300 \
+  --agent-every 50 \
+  --preflight
 ```
 
-The dashboard provides:
-- **Real-time metrics visualization** (loss, learning rate, gradient norms)
-- **Control panels** for optimizer, checkpoints, and model management
-- **Command history** and status tracking
-- **Branching visualization** for experiment management
+This is the recommended low-cost demo. `--preflight` pauses before the first round so
+the operator can inspect the session and configure the agent.
 
-## 🤖 LLM-based tuning 
+### Muon–AdamW GPT with Aim
 
-A simple LLM based tuning exampled is included in `examples/llm_as_tuner.py`
-
-## 📚 API Reference
-
-### Supported Commands
-
-| Command | Description | Parameters Example |
-|---------|-------------|------------|
-| `update_optimizer` | Modify optimizer parameters | `{"lr": 1e-4, "weight_decay": 0.01}` |
-| `save_checkpoint` | Save current training state | `{}` |
-| `load_checkpoint` | Load previous checkpoint | `{"uuid": "checkpoint_id", "branch_name": "new_branch"}` |
-| `pause_training` | Pause training execution | `{}` |
-| `resume_training` | Resume paused training | `{}` |
-| `stop_training` | Stop training entirely | `{}` |
-| `do_evaluate` | Trigger evaluation | `{}` |
-| `update_dataset` | Update dataset reload information | `{"data_source": ["openai/gsm8k", "juletxara/mgsm"]}` |
-| `update_dataset_runtime_hyperparameters` | Update dataset run time hyper-parameters | `{"sample_prob": [0.9, 0.1]}` |
-| `model_layer_operation` | Run a function associate with a layer | `{"layer_name": "bert.encoder.layer.0.attention.self.query", "operation_name": "reset_parameters", "params": {}}` |
-| `model_layer_parameter_update` | Update layer hyperparameter | `{"layer_name": "bert.embeddings.dropout", "param_name": "p", "value": 0.5}` |
-
-### REST API Endpoints
-
-- `GET /api/get_info/` - Get current training state
-- `GET /api/get_dataset_info/` - Get current dataset initialization and run-time parameters
-- `GET /api/get_optimizer_info/` - Get optimizer parameters
-- `GET /api/get_model_info/` - Get model information
-- `GET /api/get_checkpoints/` - Get saved checkpoints
-- `GET /api/get_logs/` - Get training logs
-- `POST /api/command/` - Send intervention command
-- `WebSocket /ws/message/` - Real-time event stream
-
-## 📁 Repository Structure
-
-```
-interactive_training/
-├── dist                            # Compiled Dashboard Files
-├── __init__.py                     # Main package interface
-├── interactive_dataset_mixin.py    # Interactive dataset mixin class
-├── interactive_training_mixin.py   # Interactive training mixin class
-├── interactive_training_server.py  # FastAPI control server
-├── callbacks.py                    # Training callbacks for interventions
-├── constants.py                    # Command constants and types
-├── examples/                       # Example scripts and templates
-│   ├── train_wikitext-2_gpt2.py    # Basic training example
-│   ├── llm_as_tuner.py             # LLM agent example
-│   └── llm_prompt_template.md      # LLM agent prompt template
-├── frontend/                       # React-based dashboard
-│   └── interactive_optimizer/      # Frontend application
-├── init.sh                         # Setting up environmental variable script 
-├── pyproject.toml                  # Python package configuration
-└── README.md                       # This file
+```bash
+python -m examples.muon_gpt_frontend --max-rounds 4
 ```
 
-### Key Files
+This is the paper screencast path and is intended for an H100-class GPU. It trains a
+Qwen-style model from scratch on streamed FineWeb-Edu.
 
-- **`src/interactive_training_mixin.py`**: Core mixin class that adds interactivity to Hugging Face Trainer
-- **`src/interactive_dataset_mixin.py`**: Core mixin class that adds interactivity to dataset classes
-- **`src/interactive_training_server.py`**: FastAPI server handling command/event routing
-- **`src/callbacks.py`**: Training callbacks for different intervention types
-- **`examples/train_wikitext-2_gpt2.py`**: Complete example showing basic usage
-- **`examples/llm_as_tuner.py`**: Example of LLM-based automated optimization
+### Headless experiment examples
 
-## 📝 TODO 
+```bash
+python -m examples.hf_bert_imdb_multiround --max-rounds 10
+python -m examples.data_mixing_sentiment --max-rounds 10
+python -m examples.layerwise_lr_gpt --max-rounds 10
+python -m examples.muon_gpt --max-rounds 10
+python -m examples.rlvr_grpo_countdown --max-rounds 7
+```
 
-- [ ] Support distributed training
-- [ ] Better LLM agent support and integration
-- [ ] Add unit tests
-- [ ] Improve documentation
-- [ ] And more ...
+These are expensive research runs, not quickstart tests. Review each script's CLI and
+hardware requirements before launching it.
 
-## 🤝 Contributing
+## Aim setup
 
-We welcome contributions!
+`source init_aim.sh` creates a local Aim virtual environment. Set `AIM_SRC` to an
+editable checkout of the companion fork to obtain the custom `/live` workspace:
 
+```bash
+export AIM_SRC=/path/to/aim-fork
+source init_aim.sh
+```
 
-## 📖 Citation
+Without `AIM_SRC`, the script installs stock Aim. Stock Aim stores and displays
+metrics, but it does not include the paper's custom control panels.
 
-If you use Interactive Training in your research, please cite:
+## Reproducing reported figures
+
+The five seed-42 session-memory ledgers used by the paper are committed under `logs/`.
+Regenerate the individual panels and provenance manifest with:
+
+```bash
+python -m pip install -e ".[plots]"
+python scripts/plot_all_frontiers.py --output-dir figures
+python scripts/export_memory_evidence.py --output-dir generated
+```
+
+The resulting `figures/frontier_manifest.json` records the source commit, input and
+output hashes, plotting version, round counts, baseline/best scores, action counts, and
+cumulative token/cost fields.
+
+A complete re-execution artifact should additionally include:
+
+- the exact git commit and command line;
+- best-round JSON and per-step Aim/W&B exports;
+- model and dataset revisions;
+- seed, training/evaluation budgets, and intervention cadence;
+- operator provider/model/API date and prompt context;
+- GPU type, runtime, and token usage.
+
+The memory release is sufficient to reproduce every cross-round score, strict frontier
+classification, summarized action, reflection, and cumulative token/cost value. It
+does not contain per-step metric curves, checkpoints, Slurm output, wall-clock runtime,
+or GPU-hour accounting.
+
+## Safety and privacy
+
+- Knob values are converted and clamped to registered bounds.
+- Agent permissions exclude checkpoint loading, pausing, module reset, context
+  changes, and self-configuration.
+- API keys are not returned by `/state` and are redacted from recorded action payloads.
+- Prompts may contain proprietary telemetry and are sent to the configured provider.
+- The LLM call is synchronous at a control point; provider latency can pause progress.
+- Custom action handlers remain responsible for semantic validation and rollback.
+
+Use action limits, approval gates, resource budgets, and provider retention settings
+appropriate to the workload.
+
+## Citation
+
+The v2 citation will be added after archival publication. For the original system:
 
 ```bibtex
-@article{interactive_training_2024,
-  title={Interactive Training: Feedback-Driven Neural Network Optimization},
-  author={Wentao Zhang, Yang Young Lu, Yuntian Deng},
-  url={https://github.com/yuntian-group/interactive-training},
-  year={2025}
+@inproceedings{zhang-etal-2025-interactive,
+  title = {Interactive Training: Feedback-Driven Neural Network Optimization},
+  author = {Zhang, Wentao and Lu, Yang Young and Deng, Yuntian},
+  booktitle = {Proceedings of the 2025 Conference on Empirical Methods in
+               Natural Language Processing: System Demonstrations},
+  year = {2025},
+  pages = {851--861},
+  doi = {10.18653/v1/2025.emnlp-demos.65}
 }
 ```
+
+## License
+
+MIT. See [LICENSE](LICENSE).

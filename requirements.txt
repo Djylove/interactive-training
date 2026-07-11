@@ -1,0 +1,5 @@
+-e .[transport,aim,agents,hf,plots]
+
+# Optional heavyweight examples:
+#   python -m pip install -e ".[rlvr]"   # vLLM + PEFT Countdown
+#   python -m pip install -e ".[vision]" # STL-10 GAN

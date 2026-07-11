@@ -1,0 +1,36 @@
+[Unit]
+Description=Interactive Training 2 public demo gateway and CPU worker
+After=network-online.target interactive-training-aim.service
+Wants=network-online.target interactive-training-aim.service
+
+[Service]
+Type=simple
+User=interactive-training
+Group=interactive-training
+WorkingDirectory=/srv/interactive-training/current
+EnvironmentFile=/etc/interactive-training/demo.env
+Environment=PYTHONUNBUFFERED=1
+Environment=IT2_COOKIE_SECURE=1
+ExecStart=/srv/interactive-training/venv/bin/uvicorn it2_demo.app:app --host 127.0.0.1 --port 39081 --workers 1
+Restart=on-failure
+RestartSec=5s
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/interactive-training
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+MemoryMax=6G
+CPUQuota=500%
+TasksMax=512
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=interactive-training-gateway
+
+[Install]
+WantedBy=multi-user.target

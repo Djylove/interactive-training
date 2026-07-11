@@ -1,0 +1,17 @@
+.git
+.github
+.venv*
+__pycache__
+*.pyc
+build
+dist
+src/*.egg-info
+wandb
+.aim
+outputs
+checkpoint-*
+*.pt
+*.pth
+*.safetensors
+env.sh
+.env*

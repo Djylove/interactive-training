@@ -1,0 +1,35 @@
+[Unit]
+Description=Interactive Training 2 customized Aim workspace
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=interactive-training
+Group=interactive-training
+WorkingDirectory=/srv/interactive-training/current
+EnvironmentFile=/etc/interactive-training/demo.env
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/srv/interactive-training/venv/bin/aim up --repo /var/lib/interactive-training/aim --host 127.0.0.1 --port 39080
+Restart=on-failure
+RestartSec=5s
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/interactive-training
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+MemoryMax=4G
+CPUQuota=200%
+TasksMax=256
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=interactive-training-aim
+
+[Install]
+WantedBy=multi-user.target
