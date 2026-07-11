@@ -1,6 +1,6 @@
 # Reproducing the Paper Artifacts
 
-Five round-level memory ledgers are committed under `logs/`:
+Five round-level journals are committed under `logs/`:
 
 - `logs/hf_bert_imdb_multiround/seed42/bert_imdb_memory.jsonl`
 - `logs/data_mixing_sentiment/babysat_seed42/sentiment_memory.jsonl`
@@ -8,7 +8,7 @@ Five round-level memory ledgers are committed under `logs/`:
 - `logs/muon_gpt/seed42/muon_gpt_memory.jsonl`
 - `logs/rlvr_grpo_countdown/seed42/countdown_memory.jsonl`
 
-Regenerate the five frontier panels and provenance manifest:
+Regenerate the five control-trace panels and provenance manifest:
 
 ```bash
 pip install -e ".[plots]"
@@ -20,11 +20,11 @@ Each manifest record includes:
 - input and output SHA-256;
 - source commit and Matplotlib version;
 - direction, round count, baseline and best scores;
-- strict post-baseline frontier improvements;
+- rounds that set a new running best after the reference round;
 - summarized action count; and
 - cumulative input/output tokens and configured cost.
 
-The ledgers reproduce cross-round scores, initial configurations, plans, summarized
+The journals reproduce cross-round scores, initial configurations, plans, summarized
 actions, reflections, and usage. They do not contain:
 
 - complete per-step metric trajectories;
@@ -34,7 +34,8 @@ actions, reflections, and usage. They do not contain:
 - wall-clock runtime or GPU-hour accounting; or
 - multi-seed uncertainty.
 
-The Muon paper trace is a distinct 3,000-step, 11-round run. The 2:29 public video is
-a 1,000-step, five-round demonstration whose original event log was removed. The
-public demo therefore presents the video and the paper-trace explorer as separately
-labeled artifacts and never merges their scores or actions.
+The Muon paper trace is a distinct 11-round run with 3,000 steps per round. The 2:29
+public video is a five-round demonstration with 1,000 steps per round whose original
+event log was removed. The public demo therefore presents the video and the
+paper-trace explorer as separately labeled artifacts and never merges their scores or
+actions.

@@ -1,17 +1,28 @@
 FROM python:3.12-slim
 
+ARG AIM_REPOSITORY=https://github.com/yuntian-group/aim.git
+ARG AIM_COMMIT=11dc2691fa9886ceb932262ef3d3c85b810ff6c5
+
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     TOKENIZERS_PARALLELISM=false \
     IT2_DEMO_ASSETS=/app/demo/assets \
     IT2_SESSION_ROOT=/var/lib/interactive-training/sessions \
-    IT2_AIM_REPO=/var/lib/interactive-training/aim-repo
+    IT2_AIM_REPO=/var/lib/interactive-training/aim-repo \
+    AIM_SRC=/opt/aim
 
 WORKDIR /app
 COPY . .
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends git \
+    && git clone "$AIM_REPOSITORY" /opt/aim \
+    && git -C /opt/aim checkout "$AIM_COMMIT" \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN python -m pip install --no-cache-dir --upgrade pip \
-    && python -m pip install --no-cache-dir ".[transport,aim,hf]" \
+    && python -m pip install --no-cache-dir ".[transport,hf]" \
+    && python -m pip install --no-cache-dir -e /opt/aim \
     && python -m pip install --no-cache-dir "./demo/gateway[trainer]"
 
 EXPOSE 39081

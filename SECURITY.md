@@ -25,7 +25,7 @@ The supplied LLM agent cannot load checkpoints, pause/resume training, reset mod
 change context, or reconfigure itself. Applications remain responsible for:
 
 - validating custom action payloads;
-- setting safe knob bounds and rate limits;
+- setting safe value bounds and rate limits;
 - restricting network exposure of the HTTP control endpoint;
 - adding approval gates and rollback for high-impact actions; and
 - limiting accelerator, API, and storage budgets.

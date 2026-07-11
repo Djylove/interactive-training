@@ -13,23 +13,27 @@ from plot_memory_scores import frontier_indices, load_memory
 TRANSITIONS = {
     "Sentiment mixing": (
         (8, 9, 10),
-        "A failed tweet-heavy mixture motivated product-free asymmetric class "
-        "weights; the next round consolidated that policy with a late LR drop.",
+        "Round 8 used a product-free, tweet-dominant mixture and regressed. Its "
+        "reflection proposed balanced tweet/finance weights and asymmetric class "
+        "weights; Round 9 records those choices explicitly.",
     ),
     "Layerwise GPT": (
         (2, 3, 8),
-        "A hotter block profile regressed, shifting control toward conservative "
-        "decoder rates and progressively larger embedding/output-head rates.",
+        "Round 2 raised many deeper-block rates toward 0.001 and regressed. Round 3 "
+        "caps block rates at 0.0009 while increasing embedding and output-head rates; "
+        "later plans preserve that separation.",
     ),
     "Muon--AdamW GPT": (
         (4, 5),
-        "The reflection identified momentum as a new axis; reducing Muon momentum "
-        "from 0.95 to 0.90 improved the next fresh round.",
+        "The Round 4 reflection identifies momentum as an untested control. The "
+        "Round 5 plan lowers Muon momentum from 0.95 to 0.90, preceding the next "
+        "recorded score.",
     ),
     "RLVR Countdown": (
         (5, 6, 7),
-        "A conservative hard-start failed; wider clipping, stronger early "
-        "exploration, and sustained mid-hard curriculum training broke the plateau.",
+        "Round 5 starts at the hardest curriculum level and stalls. Its reflection "
+        "proposes wider clipping and more early exploration; the Round 6 and 7 plans "
+        "record those changes.",
     ),
 }
 
@@ -93,15 +97,15 @@ def render_ledger(data: dict[str, tuple[object, list[dict]]]) -> str:
 \begin{{tabular}}{{@{{}}lrrrrrr@{{}}}}
 \toprule
 \textbf{{Setting}} & \textbf{{Rounds}} & \textbf{{LLM rounds}} &
-\textbf{{Frontier gains}} & \textbf{{Actions}} &
+\textbf{{New-best rounds}} & \textbf{{Actions}} &
 \textbf{{Input/output tokens}} & \textbf{{Cumulative cost}} \\
 \midrule
 {body}
 \bottomrule
 \end{{tabular}}
-\caption{{\textbf{{Committed session-memory ledger.}}
+\caption{{\textbf{{Committed session journal.}}
 Token and cost fields are cumulative at the end of each session, as recorded by the
-runtime client. ``Actions'' counts summarized successful within-round knob and
+runtime client. ``Actions'' counts summarized successful within-round setting and
 control actions; it is not a measure of decision quality.}}
 \label{{tab:memory-ledger}}
 \end{{table*}}
@@ -125,15 +129,14 @@ def render_transitions(data: dict[str, tuple[object, list[dict]]]) -> str:
 \begin{{tabularx}}{{\textwidth}}{{@{{}}l l Y@{{}}}}
 \toprule
 \textbf{{Setting}} & \textbf{{Recorded score transition}} &
-\textbf{{Lesson carried through session memory}} \\
+\textbf{{Journal entry carried forward}} \\
 \midrule
 {body}
 \bottomrule
 \end{{tabularx}}
-\caption{{\textbf{{Representative cross-round memory transitions.}}
+\caption{{\textbf{{Representative cross-round journal transitions.}}
 These examples are selected from the committed JSONL ledgers to illustrate how
-failed or plateaued rounds changed the next plan. They are qualitative audit records,
-not evidence that the LLM policy is optimal.}}
+failed or plateaued rounds appear explicitly in the next plan.}}
 \label{{tab:memory-transitions}}
 \end{{table*}}
 """

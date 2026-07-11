@@ -5,12 +5,12 @@
 > and branch [`legacy/v1`](https://github.com/yuntian-group/interactive-training/tree/legacy/v1).
 > See [`docs/MIGRATION_v1_to_v2.md`](docs/MIGRATION_v1_to_v2.md).
 
-Interactive Training 2 is a framework-agnostic control plane for steering active
-machine-learning training runs. Training code registers live knobs and structured
-actions with a `TrainingSession`; humans, scripts, heuristics, and automated operators
-then use the same action protocol at explicit control points. The supplied LLM client
-is one reference operator: it plans an initial configuration, acts while a round is
-running, and writes a reflection that informs later fresh rounds.
+Interactive Training 2 provides a framework-independent control-plane core for
+steering active machine-learning runs. Training code registers typed settings and
+structured actions with a `TrainingSession`; humans, scripts, heuristics, and
+automated agents then use the same action protocol at explicit control points. The
+optional LLM agent plans an initial configuration, acts while a round is running, and
+writes a reflection to an explicit journal that informs later fresh rounds.
 
 This repository is a research prototype accompanying an EMNLP System Demonstrations
 submission. It is not an optimizer and does not guarantee that LLM interventions are
@@ -20,7 +20,7 @@ safe or beneficial.
 
 - `src/interactive_training/core/`: sessions, knobs, actions, events, goals, checkpoints, memory, and
   deterministic-round helpers.
-- `src/interactive_training/agents/`: a plan/act/reflect LLM reference operator.
+- `src/interactive_training/agents/`: an optional plan/act/reflect LLM agent.
 - `src/interactive_training/transport/`: HTTP/WebSocket control, Aim logging, and a Python client.
 - `src/interactive_training/integrations/`: Hugging Face `Trainer` wrapping and optimizer autopatching.
 - `src/interactive_training/recipes/`: reusable control surfaces for optimizers, GANs, Gym, and RLVR.
@@ -28,15 +28,37 @@ safe or beneficial.
   Muon–AdamW training, GRPO Countdown, and auxiliary experiments.
 - `tests/`: core, transport, agent, Aim-transport, and recipe tests.
 
-The customized Aim `/live` interface shown in the paper currently lives in a
-companion Aim fork. Standard Aim metric logging and the HTTP control API work from
-this repository; reproducing the exact paper UI additionally requires that fork via
-`AIM_SRC`. The fork must be published or merged before the paper artifact is
-considered complete.
+The customized Aim `/live` interface shown in the paper is published at
+[`yuntian-group/aim`](https://github.com/yuntian-group/aim/tree/interactive-training-v2).
+Its exact branch and commit are recorded in [`demo/aim.lock.json`](demo/aim.lock.json).
+Standard Aim metric logging and the HTTP control API work without the fork; the
+paper's monitoring-and-control workspace requires the pinned version via `AIM_SRC`.
+
+## Reviewer quick paths
+
+1. **Zero install:** open <https://interactivetraining.ai/live> to inspect the
+   recorded paper trace or submit bounded controls to the queued tiny-BERT CPU
+   sandbox. The public service never accepts LLM API keys.
+2. **Core smoke test:** clone tag `v2.0.1`, install the transport extras, and run
+   `python tests/run_tests.py`. This path needs no GPU, provider key, or Aim fork.
+3. **Full Aim workspace:** clone the exact companion revision recorded in
+   `demo/aim.lock.json`, set `AIM_SRC`, and run the BERT frontend example.
+
+The Muon video is supplementary and deliberately separate from the committed
+11-round paper trace. See [`demo/README.md`](demo/README.md) for the provenance of
+each public mode.
 
 ## Installation
 
 Python 3.10 or newer is required.
+
+Clone the immutable release rather than relying on the moving default branch:
+
+```bash
+git clone --branch v2.0.1 \
+  https://github.com/yuntian-group/interactive-training.git
+cd interactive-training
+```
 
 ### Core library
 
@@ -139,7 +161,7 @@ When the HTTP transport is active:
 - `GET /state`: current status, goal, knobs, action schemas, agent configuration,
   round metadata, checkpoints, and model tree.
 - `POST /actions`: submit an action object.
-- `GET /events?since=<seq>`: replay retained events.
+- `GET /events?since=<seq>`: recover retained events after a sequence number.
 - `WS /events?since=<seq>`: subscribe to live events.
 
 Example:
@@ -157,14 +179,14 @@ The supplied LLM agent is denied destructive and self-reconfiguration actions.
 
 ## Multi-round semantics
 
-`TrainingSession.run_rounds(...)` adds one no-agent baseline round whenever an agent is
-attached. `--max-rounds N` therefore means one baseline plus `N` agent rounds.
+`TrainingSession.run_rounds(...)` adds one no-LLM reference round whenever an agent is
+attached. `--max-rounds N` therefore means one reference plus `N` agent-guided rounds.
 The showcased examples initialize a fresh model each round and reapply the same seed;
-session memory, not model weights, persists between rounds.
+the explicit session journal, not model weights, persists between rounds.
 
-Each memory JSONL record contains the initial configuration, best score and step,
+Each journal JSONL record contains the initial configuration, best score and step,
 actions, reflection, and token accounting. `scripts/plot_memory_scores.py` plots one
-memory file; `scripts/plot_all_frontiers.py` regenerates all five paper panels and
+journal file; `scripts/plot_all_frontiers.py` regenerates all five paper panels and
 their SHA-256 provenance manifest.
 
 ## Demonstrations
@@ -180,7 +202,7 @@ python -m examples.hf_bert_imdb_frontend \
 ```
 
 This is the recommended low-cost demo. `--preflight` pauses before the first round so
-the operator can inspect the session and configure the agent.
+the user can inspect the session and configure the agent.
 
 ### Muon–AdamW GPT with Aim
 
@@ -206,11 +228,14 @@ hardware requirements before launching it.
 
 ## Aim setup
 
-`source init_aim.sh` creates a local Aim virtual environment. Set `AIM_SRC` to an
-editable checkout of the companion fork to obtain the custom `/live` workspace:
+`source init_aim.sh` creates a local Aim virtual environment. Clone the pinned
+companion branch and set `AIM_SRC` to that editable checkout to obtain the custom
+`/live` workspace:
 
 ```bash
-export AIM_SRC=/path/to/aim-fork
+git clone --branch interactive-training-v2 \
+  https://github.com/yuntian-group/aim.git ../aim
+export AIM_SRC=../aim
 source init_aim.sh
 ```
 
@@ -219,7 +244,7 @@ metrics, but it does not include the paper's custom control panels.
 
 ## Reproducing reported figures
 
-The five seed-42 session-memory ledgers used by the paper are committed under `logs/`.
+The five seed-42 session journals used by the paper are committed under `logs/`.
 Regenerate the individual panels and provenance manifest with:
 
 ```bash
@@ -238,17 +263,17 @@ A complete re-execution artifact should additionally include:
 - best-round JSON and per-step Aim/W&B exports;
 - model and dataset revisions;
 - seed, training/evaluation budgets, and intervention cadence;
-- operator provider/model/API date and prompt context;
+- LLM provider/model/API date and prompt context;
 - GPU type, runtime, and token usage.
 
-The memory release is sufficient to reproduce every cross-round score, strict frontier
+The journal release is sufficient to reproduce every cross-round score, new-running-best
 classification, summarized action, reflection, and cumulative token/cost value. It
 does not contain per-step metric curves, checkpoints, Slurm output, wall-clock runtime,
 or GPU-hour accounting.
 
 ## Safety and privacy
 
-- Knob values are converted and clamped to registered bounds.
+- Setting values are converted and clamped to registered bounds.
 - Agent permissions exclude checkpoint loading, pausing, module reset, context
   changes, and self-configuration.
 - API keys are not returned by `/state` and are redacted from recorded action payloads.

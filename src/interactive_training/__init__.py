@@ -16,7 +16,7 @@ from interactive_training.core import (
 from interactive_training.integrations import autopatch, make_interactive, unpatch
 from interactive_training.transport import Client, aim_frontend
 
-__version__ = "2.0.0"
+__version__ = "2.0.1"
 
 __all__ = [
     "__version__",

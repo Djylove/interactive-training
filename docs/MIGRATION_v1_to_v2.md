@@ -7,20 +7,23 @@ Interactive Training 2 is a major architectural release. v1 remains available at
 ## Architecture
 
 v1 embedded a FastAPI server and fixed command families into a Hugging Face Trainer
-mixin. v2 introduces a framework-agnostic `TrainingSession`: applications register
-their own knobs and actions, then call a control point from Hugging Face callbacks,
-an optimizer patch, or a custom loop.
+mixin. v2 introduces a framework-independent `TrainingSession` core: applications
+register their own knobs and actions, then call a control point from Hugging Face
+callbacks, an optimizer patch, or a custom loop.
 
 ## Installation
 
 ```bash
-pip install "interactive-training==2.0.0"
+git clone --branch v2.0.1 \
+  https://github.com/yuntian-group/interactive-training.git
+cd interactive-training
+python -m pip install -e .
 ```
 
 Python 3.10+ is required. Install optional integrations explicitly:
 
 ```bash
-pip install "interactive-training[transport,agents,hf,aim]"
+python -m pip install -e ".[transport,agents,hf,aim]"
 ```
 
 ## Hugging Face Trainer
@@ -47,7 +50,7 @@ trainer.train()
 ```
 
 The v1 import remains valid, but the explicit session is recommended because it owns
-goals, transports, memory, agent configuration, and multi-round state.
+goals, transports, the event journal, agent configuration, and multi-round state.
 
 ## HTTP protocol
 
@@ -106,10 +109,10 @@ API keys.
 
 ## Multi-round semantics
 
-When an LLM operator is attached, `run_rounds` adds one no-LLM baseline followed by
-the configured number of fresh LLM-operated rounds. Model weights reset; session
-memory persists. Each JSONL record contains the plan, round score, best step,
-summarized actions, reflection, and cumulative usage.
+When an LLM agent is attached, `run_rounds` adds one no-LLM reference round followed
+by the configured number of fresh LLM-guided rounds. Model weights reset; the
+explicit session journal persists. Each JSONL record contains the plan, round score,
+best step, summarized actions, reflection, and cumulative usage.
 
 ## Rollback
 

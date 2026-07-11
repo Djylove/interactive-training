@@ -2,21 +2,36 @@
 
 All notable changes follow semantic versioning.
 
-## [2.0.0] - Unreleased
+## [2.0.1] - 2026-07-11
+
+### Changed
+
+- Documented zero-install, core-smoke, and full-Aim reviewer paths.
+- Linked the canonical `interactive-training-v2` Aim branch and machine-readable
+  commit pin.
+- Replaced unavailable PyPI installation instructions with an immutable Git tag.
+- Reworded generated evidence tables around event journals and new running bests.
+
+### Fixed
+
+- Removed stale claims that the Aim fork was unpublished.
+- Corrected the companion Aim branch name in demo documentation.
+
+## [2.0.0] - 2026-07-11
 
 ### Added
 
-- Framework-agnostic `TrainingSession` with registered knobs, actions, goals, and
-  event streams.
+- Framework-independent `TrainingSession` core with registered settings, actions,
+  goals, and event streams.
 - Explicit apply-before-advance control points for Hugging Face Trainer, patched
   optimizers, and custom loops.
-- Plan/act/reflect LLM reference operator with bounded permissions and persistent
-  round memory.
+- Plan/act/reflect LLM agent with bounded permissions and an explicit cross-round
+  journal.
 - HTTP/WebSocket transport, Aim transport, and customized Aim Live workspace.
-- Multi-round baseline semantics, deterministic-round helpers, DDP control broadcast,
+- Multi-round reference semantics, deterministic-round helpers, DDP control broadcast,
   checkpoint bookkeeping, and action-result auditing.
 - BERT, data-mixing, layerwise GPT, Muon–AdamW, RLVR, and GAN examples.
-- Five committed seed-42 memory ledgers and reproducible frontier plotting tools.
+- Five committed seed-42 journals and reproducible control-trace plotting tools.
 - MIT license, security policy, tests, packaging extras, and hybrid public demo.
 
 ### Breaking

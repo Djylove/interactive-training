@@ -98,7 +98,7 @@ def summarize(spec: RunSpec, memory: Path, output: Path, rounds: list[dict]) -> 
         "output": (
             str(output.relative_to(PAPER_REPO))
             if output.is_relative_to(PAPER_REPO)
-            else str(output)
+            else str(Path("figures") / output.name)
         ),
         "output_sha256": sha256(output),
         "direction": spec.direction,

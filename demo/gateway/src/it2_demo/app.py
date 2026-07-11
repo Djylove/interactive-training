@@ -38,7 +38,7 @@ def create_app(manager: SessionManager | None = None) -> FastAPI:
 
     app = FastAPI(
         title="Interactive Training 2 Demo Gateway",
-        version="2.0.0",
+        version="2.0.1",
         lifespan=lifespan,
     )
     app.state.session_manager = session_manager
@@ -52,25 +52,25 @@ def create_app(manager: SessionManager | None = None) -> FastAPI:
         return ModesResponse(
             modes=[
                 ModeInfo(
-                    id="muon-video",
-                    title="Muon video walkthrough",
-                    mode="video_only",
-                    available=True,
-                    notice="Canonical five-round video; the original event log is unavailable.",
-                ),
-                ModeInfo(
                     id="muon-paper-trace",
-                    title="Explore the Muon paper trace",
+                    title="Inspect the recorded paper trace",
                     mode="round_memory",
                     available=True,
-                    notice="Eleven committed 3,000-step rounds; distinct from the video.",
+                    notice="Eleven committed 3,000-step rounds from the seed-42 journal.",
                 ),
                 ModeInfo(
                     id="cpu-live",
-                    title="Live tiny-BERT CPU control",
+                    title="Submit live tiny-BERT controls",
                     mode="live_cpu",
                     available=True,
                     notice="Real reduced training, one worker, no LLM calls.",
+                ),
+                ModeInfo(
+                    id="muon-video",
+                    title="Supplementary Muon video",
+                    mode="video_only",
+                    available=True,
+                    notice="Separate five-round video; the original event log is unavailable.",
                 ),
             ],
             active_live_sessions=session_manager.active_count,
