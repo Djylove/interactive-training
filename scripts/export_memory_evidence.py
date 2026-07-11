@@ -17,12 +17,6 @@ TRANSITIONS = {
         "reflection proposed balanced tweet/finance weights and asymmetric class "
         "weights; Round 9 records those choices explicitly.",
     ),
-    "Layerwise GPT": (
-        (2, 3, 8),
-        "Round 2 raised many deeper-block rates toward 0.001 and regressed. Round 3 "
-        "caps block rates at 0.0009 while increasing embedding and output-head rates; "
-        "later plans preserve that separation.",
-    ),
     "Muon--AdamW GPT": (
         (4, 5),
         "The Round 4 reflection identifies momentum as an untested control. The "
@@ -121,24 +115,25 @@ def render_transitions(data: dict[str, tuple[object, list[dict]]]) -> str:
             f"R{round_id}: {score_text(float(by_round[round_id]['score']))}"
             for round_id in round_ids
         )
-        rows.append(f"{setting} & {transition} & {lesson} \\\\")
+        rows.append(f"{setting} & {transition}. {lesson} \\\\")
     body = "\n".join(rows)
-    return rf"""\begin{{table*}}[t]
+    return rf"""\begin{{center}}
+\begin{{minipage}}{{\columnwidth}}
 \centering
-\small
-\begin{{tabularx}}{{\textwidth}}{{@{{}}l l Y@{{}}}}
+\footnotesize
+\begin{{tabularx}}{{\columnwidth}}{{@{{}}l Y@{{}}}}
 \toprule
-\textbf{{Setting}} & \textbf{{Recorded score transition}} &
-\textbf{{Journal entry carried forward}} \\
+\textbf{{Setting}} & \textbf{{Recorded transition and journal evidence}} \\
 \midrule
 {body}
 \bottomrule
 \end{{tabularx}}
-\caption{{\textbf{{Representative cross-round journal transitions.}}
-These examples are selected from the committed JSONL ledgers to illustrate how
-failed or plateaued rounds appear explicitly in the next plan.}}
+\captionsetup{{hypcap=false}}
+\captionof{{table}}{{\textbf{{Representative cross-round journal transitions.}}
+Failed or plateaued rounds appear explicitly in the next plan.}}
 \label{{tab:memory-transitions}}
-\end{{table*}}
+\end{{minipage}}
+\end{{center}}
 """
 
 
