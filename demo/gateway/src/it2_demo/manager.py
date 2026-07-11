@@ -268,7 +268,8 @@ class SessionManager:
             log_handle.close()
 
     async def _wait_until_ready(self, record: SessionRecord, timeout: int) -> bool:
-        assert record.port is not None
+        if record.port is None:
+            return False
         deadline = asyncio.get_running_loop().time() + timeout
         url = f"http://127.0.0.1:{record.port}/state"
         async with httpx.AsyncClient(timeout=1.5) as client:

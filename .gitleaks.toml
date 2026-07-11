@@ -1,0 +1,9 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Known false positives in minified v1 frontend bundles (FourKeyMap constants)"
+paths = [
+  '''interactive_training/dist/assets/index-.*\.js''',
+  '''src/dist/assets/index-.*\.js''',
+]

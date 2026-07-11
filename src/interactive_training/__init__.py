@@ -14,7 +14,7 @@ from interactive_training.core import (
     ValidationLoss,
 )
 from interactive_training.integrations import autopatch, make_interactive, unpatch
-from interactive_training.transport import Client, HttpTransport, aim_frontend
+from interactive_training.transport import Client, aim_frontend
 
 __version__ = "2.0.0"
 
@@ -41,3 +41,10 @@ __all__ = [
     "make_interactive",
     "unpatch",
 ]
+
+
+def __getattr__(name: str):
+    if name == "HttpTransport":
+        from interactive_training.transport import HttpTransport
+        return HttpTransport
+    raise AttributeError(name)

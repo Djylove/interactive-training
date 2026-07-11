@@ -13,6 +13,11 @@ from interactive_training import Action, Plan, TrainingSession
 from interactive_training.transport import AimTransport, CompositeTransport, HttpTransport
 
 
+MODEL_REVISION = "6f75de8b60a9f8a2fdf7b69cbd86d9e64bcb3837"
+TOKENIZER_REVISION = "86b5e0934494bd15c9632b12f734a8a67f723594"
+DATASET_REVISION = "e6281661ce1c48d982bc483cf8a173c1bbeb5d31"
+
+
 class ScriptedReferenceOperator:
     """Deterministic public-demo policy; never calls an external LLM."""
 
@@ -73,14 +78,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--eval-every", type=int, default=10)
     parser.add_argument("--delay", type=float, default=0.12)
     parser.add_argument("--model", default="prajjwal1/bert-tiny")
-    parser.add_argument("--tokenizer", default="bert-base-uncased")
+    parser.add_argument("--model-revision", default=MODEL_REVISION)
+    parser.add_argument("--tokenizer", default="google-bert/bert-base-uncased")
+    parser.add_argument("--tokenizer-revision", default=TOKENIZER_REVISION)
+    parser.add_argument("--dataset-revision", default=DATASET_REVISION)
     return parser.parse_args()
 
 
-def load_data(tokenizer, seed: int):
+def load_data(tokenizer, seed: int, revision: str):
     from datasets import load_dataset
 
-    dataset = load_dataset("stanfordnlp/imdb")
+    dataset = load_dataset("stanfordnlp/imdb", revision=revision)
     train = dataset["train"].shuffle(seed=seed).select(range(512))
     valid = dataset["test"].shuffle(seed=seed).select(range(128))
 
@@ -124,8 +132,10 @@ def main() -> None:
     seed = 42
     torch.manual_seed(seed)
 
-    tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
-    train_data, valid_data = load_data(tokenizer, seed)
+    tokenizer = AutoTokenizer.from_pretrained(
+        args.tokenizer, revision=args.tokenizer_revision
+    )
+    train_data, valid_data = load_data(tokenizer, seed, args.dataset_revision)
     valid_loader = DataLoader(valid_data, batch_size=16, shuffle=False)
 
     http = HttpTransport(host="127.0.0.1", port=args.port)
@@ -165,7 +175,9 @@ def main() -> None:
     def train_round(active_session: TrainingSession, ctx) -> None:
         torch.manual_seed(seed)
         model = AutoModelForSequenceClassification.from_pretrained(
-            args.model, num_labels=2
+            args.model,
+            revision=args.model_revision,
+            num_labels=2,
         )
         model.train()
         optimizer = torch.optim.AdamW(model.parameters(), lr=5e-5, weight_decay=0.0)

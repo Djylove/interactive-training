@@ -42,7 +42,7 @@ hf = ["torch", "transformers>=4.45,<5", "datasets>=2.19,<5", "accelerate", "wand
 rlvr = ["torch", "transformers>=4.45,<5", "datasets>=2.19,<5", "peft", "vllm", "tqdm", "wandb"]
 vision = ["torch", "torchvision", "scipy", "numpy", "wandb"]
 plots = ["matplotlib>=3.8"]
-dev = ["pytest", "httpx", "ruff", "build"]
+dev = ["pytest", "httpx", "ruff", "build", "torch"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
