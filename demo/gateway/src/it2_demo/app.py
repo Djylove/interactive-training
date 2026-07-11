@@ -38,7 +38,7 @@ def create_app(manager: SessionManager | None = None) -> FastAPI:
 
     app = FastAPI(
         title="Interactive Training 2 Demo Gateway",
-        version="2.0.1",
+        version="2.0.2",
         lifespan=lifespan,
     )
     app.state.session_manager = session_manager

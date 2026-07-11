@@ -14,7 +14,7 @@ callbacks, an optimizer patch, or a custom loop.
 ## Installation
 
 ```bash
-git clone --branch v2.0.1 \
+git clone --branch v2.0.2 \
   https://github.com/yuntian-group/interactive-training.git
 cd interactive-training
 python -m pip install -e .

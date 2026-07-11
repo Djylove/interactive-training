@@ -15,7 +15,7 @@ WORKDIR /app
 COPY . .
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends git \
+    && apt-get install -y --no-install-recommends build-essential git \
     && git clone "$AIM_REPOSITORY" /opt/aim \
     && git -C /opt/aim checkout "$AIM_COMMIT" \
     && rm -rf /var/lib/apt/lists/*

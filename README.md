@@ -39,7 +39,7 @@ paper's monitoring-and-control workspace requires the pinned version via `AIM_SR
 1. **Zero install:** open <https://interactivetraining.ai/live> to inspect the
    recorded paper trace or submit bounded controls to the queued tiny-BERT CPU
    sandbox. The public service never accepts LLM API keys.
-2. **Core smoke test:** clone tag `v2.0.1`, install the transport extras, and run
+2. **Core smoke test:** clone tag `v2.0.2`, install the transport extras, and run
    `python tests/run_tests.py`. This path needs no GPU, provider key, or Aim fork.
 3. **Full Aim workspace:** clone the exact companion revision recorded in
    `demo/aim.lock.json`, set `AIM_SRC`, and run the BERT frontend example.
@@ -55,7 +55,7 @@ Python 3.10 or newer is required.
 Clone the immutable release rather than relying on the moving default branch:
 
 ```bash
-git clone --branch v2.0.1 \
+git clone --branch v2.0.2 \
   https://github.com/yuntian-group/interactive-training.git
 cd interactive-training
 ```

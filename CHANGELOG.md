@@ -2,6 +2,18 @@
 
 All notable changes follow semantic versioning.
 
+## [2.0.2] - 2026-07-11
+
+### Changed
+
+- Compacted the generated cross-round journal table for publication-scale reading.
+- Made PyPI publication opt-in until trusted publishing is configured.
+
+### Fixed
+
+- Added the compiler toolchain required to build the pinned Aim fork in the demo
+  container.
+
 ## [2.0.1] - 2026-07-11
 
 ### Changed

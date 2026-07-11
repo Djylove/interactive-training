@@ -31,6 +31,7 @@ jobs:
         run: gh release create "${GITHUB_REF_NAME}" dist/* figures/frontier_manifest.json --generate-notes
 
   pypi:
+    if: ${{ vars.PUBLISH_PYPI == 'true' }}
     needs: build
     runs-on: ubuntu-latest
     environment: pypi
