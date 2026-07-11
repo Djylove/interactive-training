@@ -73,6 +73,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--eval-every", type=int, default=10)
     parser.add_argument("--delay", type=float, default=0.12)
     parser.add_argument("--model", default="prajjwal1/bert-tiny")
+    parser.add_argument("--tokenizer", default="bert-base-uncased")
     return parser.parse_args()
 
 
@@ -123,7 +124,7 @@ def main() -> None:
     seed = 42
     torch.manual_seed(seed)
 
-    tokenizer = AutoTokenizer.from_pretrained(args.model)
+    tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
     train_data, valid_data = load_data(tokenizer, seed)
     valid_loader = DataLoader(valid_data, batch_size=16, shuffle=False)
 
