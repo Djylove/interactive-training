@@ -61,7 +61,7 @@ class SessionManager:
             os.environ.get("IT2_SESSION_ROOT", "/var/lib/interactive-training/sessions")
         )
         self.aim_repo = os.environ.get(
-            "IT2_AIM_REPO", "/var/lib/interactive-training/aim"
+            "IT2_AIM_REPO", "/var/lib/interactive-training/aim-repo"
         )
         self.python = os.environ.get("IT2_PYTHON", sys.executable)
         self.aim_live_url = os.environ.get("IT2_AIM_LIVE_URL", "/live")

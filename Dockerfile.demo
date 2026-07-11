@@ -5,7 +5,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     TOKENIZERS_PARALLELISM=false \
     IT2_DEMO_ASSETS=/app/demo/assets \
     IT2_SESSION_ROOT=/var/lib/interactive-training/sessions \
-    IT2_AIM_REPO=/var/lib/interactive-training/aim
+    IT2_AIM_REPO=/var/lib/interactive-training/aim-repo
 
 WORKDIR /app
 COPY . .

@@ -10,7 +10,7 @@ Group=interactive-training
 WorkingDirectory=/srv/interactive-training/current
 EnvironmentFile=/etc/interactive-training/demo.env
 Environment=PYTHONUNBUFFERED=1
-ExecStart=/srv/interactive-training/venv/bin/aim up --repo /var/lib/interactive-training/aim --host 127.0.0.1 --port 39080
+ExecStart=/srv/interactive-training/venv/bin/aim up --repo /var/lib/interactive-training/aim-repo --host 127.0.0.1 --port 39080
 Restart=on-failure
 RestartSec=5s
 

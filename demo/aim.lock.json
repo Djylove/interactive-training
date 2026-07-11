@@ -1,7 +1,7 @@
 {
   "repository": "https://github.com/yuntian-group/aim.git",
   "branch": "interactive-training-v2",
-  "commit": "bae8b3462274691b95bff1ce845153105074e214",
+  "commit": "f63bc1dd90d005e9b72523fd01508c5a220160ed",
   "base_version": "3.29.1",
   "purpose": "Customized Aim Live workspace and v2 control proxy"
 }
