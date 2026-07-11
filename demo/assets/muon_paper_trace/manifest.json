@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "mode": "round_memory",
+  "fidelity": "committed_round_memory",
+  "title": "Muon\u2013AdamW 3,000-Step Paper Trace",
+  "source": "logs/muon_gpt/seed42/muon_gpt_memory.jsonl",
+  "source_sha256": "92a04850b9b0ff3743392052d0a17a59896011348d749dc350b2af525adc0f69",
+  "rounds_sha256": "e23f89d8a3061af7936b530ceb80d3bd30f08f066e7352a766b2b9e3f0fd84a6",
+  "rounds": 11,
+  "baseline_rounds": 1,
+  "steps_per_round": 3000,
+  "baseline_score": 4.797370052337646,
+  "best_score": 4.42910737991333,
+  "notice": "This is the 11-round paper trace, not the separate five-round video run. It contains round-level memory and summarized actions, not per-step metric curves."
+}

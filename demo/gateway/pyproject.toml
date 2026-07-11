@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "interactive-training-demo-gateway"
+version = "2.0.0"
+description = "Queued public CPU sandbox for the Interactive Training 2 demo"
+requires-python = ">=3.10"
+dependencies = [
+  "fastapi",
+  "uvicorn",
+  "httpx",
+  "pydantic>=2",
+]
+
+[project.optional-dependencies]
+trainer = [
+  "torch",
+  "transformers>=4.45,<5",
+  "datasets>=2.19,<5",
+  "aim>=3.17",
+]
+dev = ["pytest", "pytest-asyncio"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
