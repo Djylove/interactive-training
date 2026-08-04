@@ -24,7 +24,8 @@ XPolicyLab policy/TurboVLA/train.sh
         |
         v
 TurboVLA experiments.gr3.train
-  one-view / state-33 / action-37 GR3 model
+  one-view / state-33 / learned-action-33 GR3 model
+  deployment adapter pads four zero axes to canonical action-37
         |
         v
 checkpoint ArtifactManifest -> replay -> simulation -> shadow -> enforce
@@ -38,7 +39,12 @@ top camera, a canonical 33D state, and a heterogeneous 37D action:
 31 absolute joint/hand positions plus height/pitch/base velocity fields and one
 absolute base yaw field.
 
-The GR3 adapter therefore uses a new state projection and 37D action head.
+The raw GR3 dataset and external XPolicyLab protocol remain 37D. Starting with
+the post-Round-A redesign on 2026-08-04, the learned head predicts the first
+33 axes: 31 joint targets plus `vel_height` and `vel_pitch`. The inference
+adapter appends four zero planar-base axes before returning the canonical 37D
+chunk. This keeps the recorder/runtime contract stable while preventing four
+disabled base outputs from entering the learned loss.
 Shape-compatible vision, text, projection, and interaction tensors may be loaded
 from a released TurboVLA checkpoint; incompatible state/action/view tensors are
 not silently reshaped. A released RoboTwin success score is not GR3 evidence.

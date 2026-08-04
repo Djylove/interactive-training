@@ -178,6 +178,8 @@ TurboVLA 插件位于 `policy/TurboVLA/`：
 - ACT 风格 50 步 action chunk 预测；
 - RoboTwin 三相机、14D 双臂动作训练与推理；
 - GR3 单相机、33D 状态、37D 动作专用适配；
+- 2026-08-04 起，TurboVLA 内部改为 33D 状态、33D 学习动作头；部署适配器补四个
+  零值底盘平面动作，继续兼容 XPolicyLab/GR3 外部 37D 协议；
 - raw/EMA checkpoint 保存和策略服务。
 
 发布的 RoboTwin checkpoint 使用 legacy `GroundingDINODiT` 参数命名，不能
