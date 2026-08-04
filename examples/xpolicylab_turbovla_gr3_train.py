@@ -30,6 +30,7 @@ def main() -> None:
     parser.add_argument("--image-size", type=int, default=224)
     parser.add_argument("--horizon", type=int, default=50)
     parser.add_argument("--num-workers", type=int, default=0)
+    parser.add_argument("--decode-threads", type=int, default=1)
     parser.add_argument("--gradient-accumulation-steps", type=int, default=1)
     parser.add_argument("--save-every", type=int, default=1000)
     parser.add_argument("--timeout-seconds", type=int, default=72 * 60 * 60)
@@ -58,6 +59,7 @@ def main() -> None:
         "TURBOVLA_MAX_STEPS",
         "TURBOVLA_LEARNING_RATE",
         "TURBOVLA_NUM_WORKERS",
+        "TURBOVLA_DECODE_THREADS",
         "TURBOVLA_GRAD_ACCUM_STEPS",
         "TURBOVLA_SAVE_EVERY",
     }
@@ -101,6 +103,7 @@ def main() -> None:
         "TURBOVLA_IMAGE_SIZE": str(args.image_size),
         "TURBOVLA_HORIZON": str(args.horizon),
         "TURBOVLA_NUM_WORKERS": str(args.num_workers),
+        "TURBOVLA_DECODE_THREADS": str(args.decode_threads),
         "TURBOVLA_GRAD_ACCUM_STEPS": str(args.gradient_accumulation_steps),
         "TURBOVLA_SAVE_EVERY": str(args.save_every),
     }
