@@ -26,6 +26,7 @@ aim-data/
 
 checkpoint-*/
 outputs/
+runs/
 *.pt
 *.pth
 *.safetensors

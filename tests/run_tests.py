@@ -14,7 +14,13 @@ for path in (PROJECT_ROOT, PROJECT_ROOT / "src"):
     if str(path) not in sys.path:
         sys.path.insert(0, str(path))
 
-MODULES = ["tests.test_core", "tests.test_transport", "tests.test_agents", "tests.test_recipes"]
+MODULES = [
+    "tests.test_core",
+    "tests.test_transport",
+    "tests.test_agents",
+    "tests.test_recipes",
+    "tests.test_xpolicylab",
+]
 
 
 def main() -> int:
