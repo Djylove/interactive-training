@@ -31,6 +31,7 @@ def main() -> None:
     parser.add_argument("--horizon", type=int, default=50)
     parser.add_argument("--num-workers", type=int, default=0)
     parser.add_argument("--decode-threads", type=int, default=1)
+    parser.add_argument("--normalization-json", type=Path)
     parser.add_argument("--gradient-accumulation-steps", type=int, default=1)
     parser.add_argument("--save-every", type=int, default=1000)
     parser.add_argument("--timeout-seconds", type=int, default=72 * 60 * 60)
@@ -60,6 +61,7 @@ def main() -> None:
         "TURBOVLA_LEARNING_RATE",
         "TURBOVLA_NUM_WORKERS",
         "TURBOVLA_DECODE_THREADS",
+        "TURBOVLA_NORMALIZATION_JSON",
         "TURBOVLA_GRAD_ACCUM_STEPS",
         "TURBOVLA_SAVE_EVERY",
     }
@@ -109,6 +111,10 @@ def main() -> None:
     }
     if args.init_checkpoint is not None:
         train_env["TURBOVLA_INIT_CHECKPOINT"] = str(args.init_checkpoint.resolve())
+    if args.normalization_json is not None:
+        train_env["TURBOVLA_NORMALIZATION_JSON"] = str(
+            args.normalization_json.resolve()
+        )
     spec = ExperimentSpec(
         experiment_id=args.experiment_id,
         round=0,
