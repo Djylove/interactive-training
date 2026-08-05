@@ -251,6 +251,7 @@ GR3 数据不能当作通用机器人数据，也不能使用 RoboTwin 14D check
 | 云端 GR3 AnyGrasp 正式骨干 smoke | PPU 单卡，BERT + DINOv3-L + TurboVLA 初始化，2 steps | loss `0.630241 -> 0.525800`，真实帧推理输出有限 `4x37` 动作 | 证明 AnyGrasp 原地只读训练闭环；不代表模型收敛 |
 | 云端 GR3 AnyGrasp task-disjoint pilot | PPU 单卡，256 clips/20,736 frames/47 train tasks，100 steps | step 1/100 loss `0.554684 -> 0.221258`；train L1 `0.512545 -> 0.308595`，19 个未见 task 的 held-out L1 `0.502926 -> 0.349810` | 相对零步初始化，train/held-out 分别改善 39.79%/30.44%；建立可复现的任务级泛化基线 |
 | GR3 三分数据分级迭代 | 68/10/19 train/validation/held-out tasks；pilot 256 clips；`1e-4`，1,000 steps | validation L1 `0.324633@100 -> 0.241974@500 -> 0.187984@1000`；sealed held-out `0.196614` | 1000-step 比 100-step 改善 42.09%；held-out 泛化差距 4.59%，最终 checkpoint 晋级 |
+| GR3 deployment-v4 33D full epoch | 5,427 clips、105,207 有效样本，完整 prompt，`batch=8`、`1e-4`、13,200 steps | 2026-08-04 21:48 完成；最终 loss `0.075209`；19-task held-out 的 104 个分层样本 L1 `0.131373`，热态推理均值/P95 `41.33/46.01 ms` | 33D 学习头完成约 1.004 epoch；离线门禁通过，下一证据为本地回放和人工监护真机成功率 |
 | 晋级模型 AnyGrasp recorded replay | 10 个 validation tasks 各 1 个真实 AV1 帧，重复 2 次 | 两次均为 10/10、pass rate 1.0；动作 SHA 逐帧一致；预热平均/P95 `35.56/39.44 ms` | XPolicyLab runtime、WebSocket、33D 输入和 50×37 输出合约通过；不代表抓取成功或真机安全 |
 | GR3 recorded replay | 2 帧，50×37 输出 | replay pass rate 1.0，P95 约 131 ms | WebSocket 和动作协议通过 |
 
@@ -269,6 +270,12 @@ validation tasks 和原样封存的 19 个 held-out tasks。学习率筛选只�
 从官方初始化训练 1,000 steps，validation L1 降至 `0.187984`，sealed held-out
 为 `0.196614`，且 held-out 未参与选择。晋级记录位于远端
 `runs/gr3-anygrasp-iteration-v1/iteration-summary.json`。
+
+deployment-v4 将训练覆盖扩大到 5,427 clips，并使用与真机一致的完整任务 prompt。
+模型内部采用 33D 状态和 33D 学习动作，推理适配器补四个零值平面底盘动作后
+继续输出外部 `50x37` 合约。旧 37D checkpoint 的前 33 维权重迁移为
+`876 loaded / 0 skipped`。新旧 held-out L1 的动作维度和抽样协议不同，因此
+`0.131373` 只作为晋级信号，不作为严格同比的模型提升百分比。
 
 晋级 checkpoint 随后通过新的 AnyGrasp 引用式 replay：源 AV1 和 parquet 仍在
 `/mnt/workspace/jmy` 原地只读，项目目录只保存数据身份和 10 个确定性样本索引。
@@ -454,12 +461,16 @@ WAM 也可以复用控制面和执行框架，但需要新的评价语义，例�
   释放其 GPU 占用；
 - 当前结论仅覆盖设备、协议、安全过滤和无写入链路，不代表 AnyGrasp 抓取成功；
   下一门禁是清场、急停确认和明确人工授权后的单次真机动作，连续执行仍禁用；
+- 旧 1,000-step 模型已完成真机执行链路验证，但抓取效果较差；因此扩大
+  deployment-v4 数据并完成 13,200-step 33D full-epoch 训练。最终 checkpoint
+  SHA-256 为 `6279698d0a59362a2be9da40418cc0251f89c4cc5740fd44928a72d1b9d4fc6a`；
 - 2026-08-04 再次以 `/home/ubuntu/dagger-gr3` 最新工作树为基线同步：robot-adaptor、
   QNexo、DAgger router、DepthAI、recorder、farther-core 与 schema 的共享文件已逐字
   一致；正式真机入口固定为 `gr3-policy-dagger.yml`，不再使用独立单步图作为运行
   入口；
-- 最新参考语义恢复为右脚踏按住接管/松开回交，并默认 `FREEZE_WAIST=1`；首次
-  TurboVLA 真机参数固定为 chunk `1`、prefetch `0`、最大关节步长 `0.03 rad`；
+- 最新参考语义恢复为右脚踏按住接管/松开回交，并默认 `FREEZE_WAIST=1`；当前
+  TurboVLA 真机参数与成熟 GR3 链路一致：chunk `16`、prefetch `4`、相机与动作
+  `30 Hz`、机器人状态 `60 Hz`、最大关节步长 `0.15 rad`；
 - 同步了新版 GR3 episode validator：兼容 Dora typed parameters，并报告和剔除
   canonical robot state 结束后的尾部相机审计帧，禁止与陈旧状态配对训练；融合
   runtime 回归 26/26、XPolicyLab GR3/结果桥接回归 30/30 通过；
