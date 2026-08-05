@@ -24,8 +24,8 @@ XPolicyLab policy/TurboVLA/train.sh
         |
         v
 TurboVLA experiments.gr3.train
-  one-view / state-33 / learned-action-33 GR3 model
-  deployment adapter pads four zero axes to canonical action-37
+  one-view / joint-state-31 / learned-joint-action-31 GR3 model
+  deployment adapter pads six zero base axes to canonical action-37
         |
         v
 checkpoint ArtifactManifest -> replay -> simulation -> shadow -> enforce
@@ -39,12 +39,13 @@ top camera, a canonical 33D state, and a heterogeneous 37D action:
 31 absolute joint/hand positions plus height/pitch/base velocity fields and one
 absolute base yaw field.
 
-The raw GR3 dataset and external XPolicyLab protocol remain 37D. Starting with
-the post-Round-A redesign on 2026-08-04, the learned head predicts the first
-33 axes: 31 joint targets plus `vel_height` and `vel_pitch`. The inference
-adapter appends four zero planar-base axes before returning the canonical 37D
-chunk. This keeps the recorder/runtime contract stable while preventing four
-disabled base outputs from entering the learned loss.
+The raw GR3 dataset retains its canonical 33D state and external 37D action.
+After the 2026-08-05 real-robot audit, the learned model contract was reduced to
+the 31 named joints on both sides. The reader drops the unused `base_height` and
+`base_pitch` observations before normalization, and drops all six base command
+axes from the learned loss. The inference adapter appends six zeros before
+returning the canonical 37D chunk. This keeps the recorder/runtime contract
+stable without feeding untrained world-frame base values into the policy.
 Shape-compatible vision, text, projection, and interaction tensors may be loaded
 from a released TurboVLA checkpoint; incompatible state/action/view tensors are
 not silently reshaped. A released RoboTwin success score is not GR3 evidence.
@@ -64,6 +65,35 @@ recorder format:
   unavailable tail;
 - software-decodes the AV1 top-camera stream, center-crops it, and resizes it;
 - normalizes state by mean/std and action by the selected frames' 1%/99% interval.
+
+The raw 33D/37D schema above is a storage contract. TurboVLA receives and learns
+only the first 31 named joint axes.
+
+## 2026-08-05 real-robot contract correction
+
+The first full-epoch 33D checkpoint passed offline reconstruction gates but
+failed the attended real-robot trial: both arms lifted and did not approach the
+tomato. Joint-order auditing found no permutation. A read-only Aurora sample
+instead exposed a state-domain bug: the dataset's final two state axes had mean
+zero and standard deviation `1e-4`, while deployment supplied world-frame
+`base_pos_W.z=0.814436` and `base_pitch=0.011261`. Their normalized values were
+approximately `8144` and `112.6`, dominating the state tokens.
+
+The runtime now uses `gr3_joint_v1.state` (`31D`) for TurboVLA, while other GR3
+models may continue using the canonical 33D observation. The trained checkpoint
+was structurally projected from 33D/33D to 31D/31D by slicing only the two state
+input axes and two action output axes; it is a deployment correction, not new
+training. The projected checkpoint is:
+
+```text
+/home/ubuntu/xpolicylabdagger/policy/TurboVLA/checkpoints/GR3-deploy-v4-round-a-joint31-e1-lr1e4-s13200-gr3-joint31_canonical37-0/model_final.pt
+SHA-256: 0145f79dca8bff3411c117f63320efd13f53b55c92500e277df9db7f16945b58
+```
+
+A local WebSocket shadow smoke accepted `31D`, returned finite `50x37`, kept
+axes 31–36 at zero, and measured warm latencies of `38.61` and `22.56 ms`.
+No robot command was issued. The next cloud round must train the native 31D/31D
+head rather than relying permanently on checkpoint projection.
 
 GR3 has no wrist cameras in this dataset. The model profile therefore has one
 view; it must not duplicate the top image to imitate a three-camera robot.

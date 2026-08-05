@@ -40,7 +40,7 @@ RoboTwin and GR3 are deliberately distinct:
 | Profile | Cameras | State/action | Purpose |
 | --- | --- | --- | --- |
 | `turbovla.robotwin_clean_v1` | head + two wrists | 14D / 14D, horizon 50 | official TurboVLA training and RoboTwin simulation |
-| `xpolicylab.gr3_dagger_v2` | recorded GR3 top camera | 33D / 37D, horizon 50 | GR3 DAgger replay, then GR3-specific deployment gates |
+| `xpolicylab.gr3_dagger_v2` | recorded GR3 top camera | raw 33D/37D; TurboVLA joint 31D/31D, horizon 50 | GR3 DAgger replay, then GR3-specific deployment gates |
 
 Neither data nor benchmark evidence is silently transferred between profiles.
 In particular, RoboTwin success is not GR3 deployment evidence.

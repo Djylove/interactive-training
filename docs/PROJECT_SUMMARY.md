@@ -177,9 +177,9 @@ TurboVLA 插件位于 `policy/TurboVLA/`：
 - DINOv3 视觉编码、BERT 文本编码和视觉语言融合；
 - ACT 风格 50 步 action chunk 预测；
 - RoboTwin 三相机、14D 双臂动作训练与推理；
-- GR3 单相机、33D 状态、37D 动作专用适配；
-- 2026-08-04 起，TurboVLA 内部改为 33D 状态、33D 学习动作头；部署适配器补四个
-  零值底盘平面动作，继续兼容 XPolicyLab/GR3 外部 37D 协议；
+- GR3 单相机、原始 33D 状态、37D 动作数据适配；
+- 2026-08-05 真机审计后，TurboVLA 内部改为 31D 具名关节状态和 31D 具名关节
+  动作；部署适配器补六个零值底盘轴，继续兼容 XPolicyLab/GR3 外部 37D 协议；
 - raw/EMA checkpoint 保存和策略服务。
 
 发布的 RoboTwin checkpoint 使用 legacy `GroundingDINODiT` 参数命名，不能
@@ -272,10 +272,19 @@ validation tasks 和原样封存的 19 个 held-out tasks。学习率筛选只�
 `runs/gr3-anygrasp-iteration-v1/iteration-summary.json`。
 
 deployment-v4 将训练覆盖扩大到 5,427 clips，并使用与真机一致的完整任务 prompt。
-模型内部采用 33D 状态和 33D 学习动作，推理适配器补四个零值平面底盘动作后
-继续输出外部 `50x37` 合约。旧 37D checkpoint 的前 33 维权重迁移为
+该轮历史模型内部采用 33D 状态和 33D 学习动作，推理适配器补四个零值平面底盘
+动作后继续输出外部 `50x37` 合约。旧 37D checkpoint 的前 33 维权重迁移为
 `876 loaded / 0 skipped`。新旧 held-out L1 的动作维度和抽样协议不同，因此
 `0.131373` 只作为晋级信号，不作为严格同比的模型提升百分比。
+
+2026-08-05 首次 full-epoch 真机试验暴露了输入合约缺陷：训练数据的
+`base_height/base_pitch` 均接近零，标准差均被下限设为 `1e-4`，真机却输入
+`0.814436/0.011261`，归一化后约为 `8144/112.6`。关节顺序核对通过，因此已将
+TurboVLA 专用链路修正为真实 `31D joint state -> 31D joint action`；协议边界补六
+个零继续输出 `50x37`。当前 33D 权重已确定性投影为 31D，checkpoint SHA-256 为
+`0145f79dca8bff3411c117f63320efd13f53b55c92500e277df9db7f16945b58`。
+本地无执行权 WebSocket smoke 输出有限、尾六维为零，热态时延为
+`38.61/22.56 ms`。该投影修复部署分布错误，但不替代下一轮原生 31D 云端训练。
 
 晋级 checkpoint 随后通过新的 AnyGrasp 引用式 replay：源 AV1 和 parquet 仍在
 `/mnt/workspace/jmy` 原地只读，项目目录只保存数据身份和 10 个确定性样本索引。
@@ -464,6 +473,10 @@ WAM 也可以复用控制面和执行框架，但需要新的评价语义，例�
 - 旧 1,000-step 模型已完成真机执行链路验证，但抓取效果较差；因此扩大
   deployment-v4 数据并完成 13,200-step 33D full-epoch 训练。最终 checkpoint
   SHA-256 为 `6279698d0a59362a2be9da40418cc0251f89c4cc5740fd44928a72d1b9d4fc6a`；
+- 2026-08-05 full-epoch 真机试验确认动作效果仍差，根因之一是两个未训练底盘
+  状态在真机归一化后达到约 `8144/112.6`；TurboVLA 训练、推理和 XPolicy 真机
+  入口现已改为 31D 关节状态到 31D 关节动作，当前投影 checkpoint SHA-256 为
+  `0145f79dca8bff3411c117f63320efd13f53b55c92500e277df9db7f16945b58`；
 - 2026-08-04 再次以 `/home/ubuntu/dagger-gr3` 最新工作树为基线同步：robot-adaptor、
   QNexo、DAgger router、DepthAI、recorder、farther-core 与 schema 的共享文件已逐字
   一致；正式真机入口固定为 `gr3-policy-dagger.yml`，不再使用独立单步图作为运行

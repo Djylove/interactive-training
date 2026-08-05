@@ -128,7 +128,7 @@ def main() -> None:
         checkpoint_name=args.checkpoint_name,
         bench_name="GR3",
         env_cfg_type="gr3",
-        action_type="model33_canonical37",
+        action_type="joint31_canonical37",
         seed=0,
         mode="remote_train",
         dataset_manifest_id=manifest.dataset_id,
