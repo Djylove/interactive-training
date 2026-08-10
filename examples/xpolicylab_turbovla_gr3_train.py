@@ -25,6 +25,7 @@ def main() -> None:
     parser.add_argument("--bert-path", type=Path, required=True)
     parser.add_argument("--init-checkpoint", type=Path)
     parser.add_argument("--max-steps", type=int, default=2)
+    parser.add_argument("--step-offset", type=int, default=0)
     parser.add_argument("--learning-rate", type=float, default=5e-5)
     parser.add_argument("--batch-size", type=int, default=1)
     parser.add_argument("--image-size", type=int, default=224)
@@ -36,6 +37,13 @@ def main() -> None:
     parser.add_argument("--normalization-json", type=Path)
     parser.add_argument("--gradient-accumulation-steps", type=int, default=1)
     parser.add_argument("--save-every", type=int, default=1000)
+    parser.add_argument("--hand-loss-weight", type=float, default=5.0)
+    parser.add_argument("--hand-axis-range-threshold", type=float, default=0.05)
+    parser.add_argument("--grasp-sample-boost", type=float, default=3.0)
+    parser.add_argument("--grasp-close-threshold", type=float, default=-0.5)
+    parser.add_argument("--state-std-floor", type=float, default=0.02)
+    parser.add_argument("--state-clip-z", type=float, default=5.0)
+    parser.add_argument("--state-axis-dropout-prob", type=float, default=0.1)
     parser.add_argument("--timeout-seconds", type=int, default=72 * 60 * 60)
     parser.add_argument("--gpu-id", default="0")
     parser.add_argument("--experiment-id", default="turbovla-gr3-anygrasp-train")
@@ -43,11 +51,18 @@ def main() -> None:
     parser.add_argument("--log-root", type=Path, required=True)
     args = parser.parse_args()
     if (
-        args.gradient_accumulation_steps < 1
+        args.step_offset < 0
+        or args.gradient_accumulation_steps < 1
         or args.save_every < 1
         or args.timeout_seconds < 1
+        or args.hand_loss_weight < 1.0
+        or args.hand_axis_range_threshold < 0
+        or args.grasp_sample_boost < 1.0
+        or args.state_std_floor < 0
+        or args.state_clip_z <= 0
+        or not 0 <= args.state_axis_dropout_prob < 1
     ):
-        parser.error("gradient accumulation, save interval, and timeout must be positive")
+        parser.error("invalid training, hand-objective, or state-robustness option")
 
     manifest = load_dataset_manifest(args.dataset_manifest)
     allowed_env = {
@@ -60,6 +75,7 @@ def main() -> None:
         "TURBOVLA_IMAGE_SIZE",
         "TURBOVLA_HORIZON",
         "TURBOVLA_MAX_STEPS",
+        "TURBOVLA_STEP_OFFSET",
         "TURBOVLA_LEARNING_RATE",
         "TURBOVLA_NUM_WORKERS",
         "TURBOVLA_DECODE_THREADS",
@@ -68,6 +84,13 @@ def main() -> None:
         "TURBOVLA_NORMALIZATION_JSON",
         "TURBOVLA_GRAD_ACCUM_STEPS",
         "TURBOVLA_SAVE_EVERY",
+        "TURBOVLA_HAND_LOSS_WEIGHT",
+        "TURBOVLA_HAND_AXIS_RANGE_THRESHOLD",
+        "TURBOVLA_GRASP_SAMPLE_BOOST",
+        "TURBOVLA_GRASP_CLOSE_THRESHOLD",
+        "TURBOVLA_STATE_STD_FLOOR",
+        "TURBOVLA_STATE_CLIP_Z",
+        "TURBOVLA_STATE_AXIS_DROPOUT_PROB",
     }
     runner = XPolicyExperimentRunner(
         args.xpolicylab_root,
@@ -112,8 +135,20 @@ def main() -> None:
         "TURBOVLA_DECODE_THREADS": str(args.decode_threads),
         "TURBOVLA_BATCH_CACHE_SIZE": str(args.batch_cache_size),
         "TURBOVLA_PRELOAD_BATCHES": "1" if args.preload_batches else "0",
+        "TURBOVLA_STEP_OFFSET": str(args.step_offset),
         "TURBOVLA_GRAD_ACCUM_STEPS": str(args.gradient_accumulation_steps),
         "TURBOVLA_SAVE_EVERY": str(args.save_every),
+        "TURBOVLA_HAND_LOSS_WEIGHT": str(args.hand_loss_weight),
+        "TURBOVLA_HAND_AXIS_RANGE_THRESHOLD": str(
+            args.hand_axis_range_threshold
+        ),
+        "TURBOVLA_GRASP_SAMPLE_BOOST": str(args.grasp_sample_boost),
+        "TURBOVLA_GRASP_CLOSE_THRESHOLD": str(args.grasp_close_threshold),
+        "TURBOVLA_STATE_STD_FLOOR": str(args.state_std_floor),
+        "TURBOVLA_STATE_CLIP_Z": str(args.state_clip_z),
+        "TURBOVLA_STATE_AXIS_DROPOUT_PROB": str(
+            args.state_axis_dropout_prob
+        ),
     }
     if args.init_checkpoint is not None:
         train_env["TURBOVLA_INIT_CHECKPOINT"] = str(args.init_checkpoint.resolve())
